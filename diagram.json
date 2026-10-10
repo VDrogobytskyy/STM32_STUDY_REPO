@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "author": "Automatic Street Light",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-stm32-bluepill", "id": "stm32", "top": -1.36, "left": 53.97, "attrs": {} },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": -97.3, "left": 259, "attrs": {} },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -80.4,
+      "left": 186.2,
+      "attrs": { "color": "purple", "flip": "" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 62.4,
+      "left": 180.85,
+      "rotate": 90,
+      "attrs": { "value": "330" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": 44.6,
+      "left": 364.8,
+      "attrs": { "color": "green", "xray": "1" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": 52.3,
+      "left": 142.95,
+      "rotate": 90,
+      "attrs": { "value": "10000" }
+    }
+  ],
+  "connections": [
+    [ "stm32:A10", "$serialMonitor:TX", "green", [ ] ],
+    [ "stm32:A9", "$serialMonitor:RX", "green", [ ] ],
+    [ "pot1:SIG", "stm32:A0", "green", [ "v182.4", "h-171.27" ] ],
+    [ "r1:2", "stm32:A5", "green", [ "h0", "v133.2" ] ],
+    [ "btn1:2.l", "stm32:GND.1", "black", [ "h-9.6", "v163.4", "h-326.4", "v-57.6" ] ],
+    [ "pot1:VCC", "stm32:3V3.1", "red", [ "v19.2", "h56.8", "v-105.6", "h-364.8", "v316.8" ] ],
+    [ "led1:A", "r1:1", "green", [ "v0" ] ],
+    [ "led1:C", "stm32:GND.2", "black", [ "v48", "h0.4" ] ],
+    [ "pot1:GND", "stm32:GND.3", "black", [ "v48" ] ],
+    [ "btn1:1.l", "stm32:A1", "purple", [ "h-124.8", "v76.8" ] ],
+    [ "r2:1", "stm32:3V3.2", "red", [ "h0" ] ],
+    [ "r2:2", "stm32:A1", "violet", [ "h0", "v123.6", "h-134.4", "v-67.2" ] ]
+  ],
+  "dependencies": {}
+}
