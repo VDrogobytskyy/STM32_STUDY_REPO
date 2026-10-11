@@ -1,7 +1,6 @@
 #include "stm32f103xb.h"
 #include <stdbool.h>
 
-volatile bool event_mode_change = false;
 volatile bool button_mode_change = false;
 volatile uint32_t system_millis = 0;
 volatile bool wake_up = false;
@@ -70,8 +69,12 @@ void EXTI1_IRQHandler(void){
         if(current_time - last_button_press > 200){
             last_button_press = current_time;
 
-            event_mode_change = !event_mode_change;
             cur_mode = cur_mode ? automate : manual;
+            if(cur_mode == automate){
+                send_string("Mode changed to automate\r\n");
+            }else{
+                send_string("Mode changed to manual\r\n");
+            }
         }
         
     }
@@ -88,6 +91,37 @@ uint16_t potentiometr_value(void){
 
     return return_value;
 }
+
+void send_char(char c) {
+    while (!(USART1->SR & USART_SR_TXE));
+    USART1->DR = (c & 0xFF);
+}
+
+void send_string(const char *str){
+    while(*str){
+        send_char(*str++);
+    }
+}
+
+void send_num(uint32_t num){
+    char buffer[15];
+    int counter = 0;
+
+    if(num == 0){
+        send_char('0');
+        return;
+    }
+
+    while(num > 0){
+        buffer[counter++] = (num % 10) + '0';
+        num = num / 10;
+    }
+
+    while(counter > 0){
+        send_char(buffer[--counter]);
+    }
+    
+}
 void hardware_init(void){
     /*
         RCC — регістр керування тактуванням
@@ -97,7 +131,16 @@ void hardware_init(void){
     */
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN 
                     | RCC_APB2ENR_AFIOEN
-                    | RCC_APB2ENR_ADC1EN;
+                    | RCC_APB2ENR_ADC1EN
+                    | RCC_APB2ENR_USART1EN;
+
+    GPIOA->CRH &= ~(GPIO_CRH_CNF9 | GPIO_CRH_MODE9);
+    GPIOA->CRH |= (GPIO_CRH_CNF9_1 | GPIO_CRH_MODE9_1);
+
+    USART1->BRR = 8000000 / 115200;
+
+    USART1->CR1 |= USART_CR1_TE | USART_CR1_UE;
+
 
     // підключаємо Лед-лампочку і ставим біти в положення OUTPUT і push-pull режим
     GPIOA->CRL &= ~(GPIO_CRL_CNF5 | GPIO_CRL_MODE5);
@@ -127,13 +170,16 @@ void hardware_init(void){
 int main(void){
     hardware_init();
 
+    send_string("\nProgram Started\r\n");
+
+    state start_state = chill;
+    uint16_t last_potent = 0;
+    
     while(1){
-        if(event_mode_change){
-            event_mode_change = false;
-        }
 
         if(wake_up){
             wake_up = false;
+            
             uint16_t potent = potentiometr_value();
             if(potent >= 90){
                 cur_state = stress;
@@ -142,7 +188,34 @@ int main(void){
             }else{
                 cur_state = chill;
             }
+            
+
+            if(cur_state != start_state | last_potent != potent){
+                start_state = cur_state;
+                send_string("Value: ");
+                send_num(potent);
+                send_string("'%', current state: ");
+                
+                last_potent = potent;
+
+                switch (cur_state){
+                    case chill:
+                        send_string("chill\r\n");
+                        break;
+                    case warning:
+                        send_string("warning\r\n");
+                        break;
+                    case stress:
+                        send_string("stress\r\n");
+                        break;
+                    default:
+                        break;
+                }
+
+            }
         }
+
+
         __asm__("wfi");
     }
 
