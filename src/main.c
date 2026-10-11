@@ -4,10 +4,60 @@
 volatile bool event_mode_change = false;
 volatile bool button_mode_change = false;
 volatile uint32_t system_millis = 0;
+volatile bool wake_up = false;
+volatile bool led_light = false;
+
+typedef enum {chill = 0, warning = 1, stress = 2} state;
+typedef enum {automate = 0, manual = 1} mode;
+
+volatile state cur_state = chill;
+volatile mode cur_mode = automate;
 
 
 void SysTick_Handler(void) {
     system_millis++;
+
+    static uint32_t ticks = 0;
+    static bool led_state = false;
+    ticks++;
+
+    if(ticks % 250 == 0){
+        wake_up = true;
+    }
+
+    if(cur_mode == automate){
+        if(cur_state == chill){
+            GPIOA->BSRR = GPIO_BSRR_BR5;
+
+            led_light = false;
+
+        }else if(cur_state == warning){
+            if((ticks % 1000) == 0){
+                GPIOA->BSRR = GPIO_BSRR_BS5;
+                led_light = !led_light;
+                
+                if(led_light == true){
+                    GPIOA->BSRR = GPIO_BSRR_BS5;
+                }else{
+                    GPIOA->BSRR = GPIO_BSRR_BR5;
+                }
+            }
+        }else{
+            if((ticks % 250) == 0){
+                GPIOA->BSRR = GPIO_BSRR_BS5;
+                led_light = !led_light;
+                
+                if(led_light == true){
+                    GPIOA->BSRR = GPIO_BSRR_BS5;
+                }else{
+                    GPIOA->BSRR = GPIO_BSRR_BR5;
+                }
+            }
+        }
+    }else{
+        GPIOA->BSRR = GPIO_BSRR_BS5;
+        led_light = true;
+    }
 }
 
 void EXTI1_IRQHandler(void){
@@ -19,7 +69,9 @@ void EXTI1_IRQHandler(void){
 
         if(current_time - last_button_press > 200){
             last_button_press = current_time;
-            button_mode_change = !button_mode_change;
+
+            event_mode_change = !event_mode_change;
+            cur_mode = cur_mode ? automate : manual;
         }
         
     }
@@ -75,22 +127,21 @@ void hardware_init(void){
 int main(void){
     hardware_init();
 
-    //GPIOA->BSRR = GPIO_BSRR_BS5;
     while(1){
-        if(button_mode_change){
-            
-            //button_mode_change = !button_mode_change;
+        if(event_mode_change){
+            event_mode_change = false;
+        }
 
-            GPIOA->BSRR = GPIO_BSRR_BR5;
-
-        }else{
+        if(wake_up){
+            wake_up = false;
             uint16_t potent = potentiometr_value();
             if(potent >= 90){
-                GPIOA->BSRR = GPIO_BSRR_BS5;
+                cur_state = stress;
+            }else if(potent >= 45){
+                cur_state = warning;
             }else{
-                GPIOA->BSRR = GPIO_BSRR_BR5;
+                cur_state = chill;
             }
-            //GPIOA->BSRR = GPIO_BSRR_BR5;
         }
         __asm__("wfi");
     }
