@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/volodymyrmac/Documents/antigravity/ПЗ_М/pr2/task2_scheduler/src",
+      "program": "/Users/volodymyrmac/Documents/antigravity/ПЗ_М/pr2/task2_scheduler/src/build/Debug/outDebug"
+    }
+  ]
+}

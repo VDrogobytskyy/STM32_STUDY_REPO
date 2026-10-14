@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "author": "Variant 7 - Practical 2 - Task 3",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-stm32-bluepill", "id": "stm32", "top": 0, "left": 100, "attrs": {} },
+    { "type": "wokwi-pushbutton", "id": "btn1", "top": 160, "left": -40, "attrs": { "color": "green", "key": "1", "xray": "1" } },
+    { "type": "wokwi-resistor", "id": "r_red", "top": -40, "left": 320, "attrs": { "value": "330" } },
+    { "type": "wokwi-resistor", "id": "r_green", "top": 0, "left": 320, "attrs": { "value": "330" } },
+    { "type": "wokwi-resistor", "id": "r_blue", "top": 40, "left": 320, "attrs": { "value": "330" } },
+    { "type": "wokwi-rgb-led", "id": "rgb1", "top": -30, "left": 420, "attrs": { "common": "cathode" } },
+    { "type": "wokwi-logic-analyzer", "id": "logic1", "top": -160, "left": 200, "attrs": { "bufferSize": "1000000", "channelNames": "Red_PA6,Green_PA7,Blue_PB0,Heartbeat_PC13,,,," } }
+  ],
+  "connections": [
+    [ "stm32:A10", "$serialMonitor:TX", "green", [] ],
+    [ "stm32:A9", "$serialMonitor:RX", "green", [] ],
+    [ "stm32:B12", "btn1:1.l", "purple", [ "h-40", "v70" ] ],
+    [ "stm32:GND.1", "btn1:2.l", "black", [ "h-30", "v40" ] ],
+    [ "stm32:A6", "r_red:1", "red", [ "h20", "v-10" ] ],
+    [ "r_red:2", "rgb1:R", "red", [ "h10" ] ],
+    [ "stm32:A7", "r_green:1", "green", [ "h20" ] ],
+    [ "r_green:2", "rgb1:G", "green", [ "h10" ] ],
+    [ "stm32:B0", "r_blue:1", "blue", [ "h20", "v10" ] ],
+    [ "r_blue:2", "rgb1:B", "blue", [ "h10" ] ],
+    [ "rgb1:COM", "stm32:GND.2", "black", [ "h20", "v60", "h-240" ] ],
+    [ "stm32:A6", "logic1:D0", "red", [ "h10", "v-120" ] ],
+    [ "stm32:A7", "logic1:D1", "green", [ "h15", "v-125" ] ],
+    [ "stm32:B0", "logic1:D2", "blue", [ "h25", "v-130" ] ],
+    [ "stm32:C13", "logic1:D3", "orange", [ "h-30", "v-150", "h150" ] ],
+    [ "stm32:GND.3", "logic1:GND", "black", [ "h-20", "v-160", "h160" ] ]
+  ],
+  "dependencies": {}
+}
